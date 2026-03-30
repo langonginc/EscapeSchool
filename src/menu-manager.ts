@@ -1,5 +1,5 @@
 import * as ex from 'excalibur';
-import { LEVEL_COUNTS } from './components/level';
+import { setupGameScenes, LEVEL_COUNTS } from './components/level';
 
 export const MenuManager = {
     uiContainer: null as HTMLElement | null,

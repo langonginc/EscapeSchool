@@ -1,12 +1,11 @@
 import * as ex from 'excalibur'
+import { setupGameScenes } from './components/level';
 import { DialogManager } from './dialog/dialog-manager';
 import { AlertManager } from './alert-manager';
-import { addLevels } from './components/level';
 import { MenuManager } from './menu-manager';
 import { PauseManager } from './pause-manager';
 import { GameOverManager } from './game-over-manager';
 import { VictoryManager } from './victory-manager';
-
 
 const game = new ex.Engine({
     width: 480,
@@ -20,7 +19,7 @@ const game = new ex.Engine({
     },
 });
 
-addLevels(game);
+setupGameScenes(game);
 
 DialogManager.init();
 AlertManager.init();
@@ -50,6 +49,6 @@ game.start().then(async() => {
     PauseManager.init(game);
     GameOverManager.init();
     VictoryManager.init(game);
-    
+
     MenuManager.showMainMenu();
 });
