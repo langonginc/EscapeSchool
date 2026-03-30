@@ -1,0 +1,23 @@
+{
+    "dialogs": [
+        {
+            "type": "text",
+            "text": "Welcome to the Escape School!"
+        },
+        {
+            "type": "option",
+            "text": "What do you want to do?",
+            "options": [
+                {
+                    "text": "I want to learn about the curriculum.",
+                    "next": []
+                },
+                {
+                    "text": "I want to meet the instructors.",
+                    "next": []
+                }
+            ]
+        }
+    ],
+    "version": 1
+}

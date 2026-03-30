@@ -1,0 +1,26 @@
+{
+  "name": "escape-school",
+  "version": "0.0.1",
+  "description": "a simple game",
+  "keywords": [
+    "game"
+  ],
+  "license": "MIT",
+  "author": "wjy@railmapgen.org",
+  "type": "commonjs",
+  "main": "src/main.ts",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "serve": "vite preview"
+  },
+  "devDependencies": {
+    "@types/node": "^25.5.0",
+    "typescript": "6.0.2",
+    "vite": "8.0.3"
+  },
+  "dependencies": {
+    "@excaliburjs/plugin-tiled": "^0.32.0",
+    "excalibur": "0.32.0"
+  }
+}
