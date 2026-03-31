@@ -163,8 +163,10 @@ export const MenuManager = {
     },
 
     enterGame(levelName: string) {
+        console.log(`[MenuManager.enterGame] 尝试进入: ${levelName}`);
         this.uiContainer!.style.display = 'none'; 
         if (this.gameEngine) {
+            console.log(`[MenuManager.enterGame] 正在调用 goToScene('${levelName}')`);
             this.gameEngine.goToScene(levelName);
         }
     }
