@@ -165,6 +165,8 @@ export const MenuManager = {
     enterGame(levelName: string) {
         console.log(`[MenuManager.enterGame] 尝试进入: ${levelName}`);
         this.uiContainer!.style.display = 'none'; 
+        console.log("👉 [跳转前检查] MenuManager 手里的引擎还是刚才那个吗？");
+        console.log("👉 [跳转前检查] 现在的场景有：", Object.keys(this.gameEngine!.scenes));
         if (this.gameEngine) {
             console.log(`[MenuManager.enterGame] 正在调用 goToScene('${levelName}')`);
             this.gameEngine.goToScene(levelName);
