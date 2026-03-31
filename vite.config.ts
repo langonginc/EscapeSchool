@@ -8,5 +8,10 @@ export default defineConfig({
   base: '/EscapeSchool/', 
   resolve: {
     dedupe: ['excalibur']
+  },
+  build: {
+    minify: false,         // 彻底关闭代码压缩和混淆
+    target: 'esnext',      // 使用现代浏览器的原生 ES 模块支持
+    sourcemap: true        // 顺便开启 sourcemap，如果以后再报错，能看到原始代码而不是乱码
   }
 })
