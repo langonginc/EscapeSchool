@@ -53,8 +53,8 @@ export class Level1Scene extends ex.Scene {
         let startY = 100;
         const objects = this.mapResource.getObjectsByName('PlayerStart');
         if (objects && objects.length > 0) {
-            startX = objects[0].x;
-            startY = objects[0].y;
+            startX = objects[0]!.x;
+            startY = objects[0]!.y;
         }
 
         // Check enemy pos
@@ -62,8 +62,8 @@ export class Level1Scene extends ex.Scene {
         let e1Y = 100;
         const objectse1 = this.mapResource.getObjectsByName('E1');
         if (objectse1 && objectse1.length > 0) {
-            e1X = objectse1[0].x;
-            e1Y = objectse1[0].y;
+            e1X = objectse1[0]!.x;
+            e1Y = objectse1[0]!.y;
         }
 
         // 加载角色 (传入 engine 和 wallLayer)
