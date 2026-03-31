@@ -30,7 +30,7 @@ export const loadActor = async (x: number, y: number, game: ex.Engine, wallLayer
     // 假设这段代码在你的 game.start(loader).then(...) 内部执行
 
     // 1. 加载精灵图资源
-    const heroImage = new ex.ImageSource('/tiled/images/pig_def.png');
+    const heroImage = new ex.ImageSource('/EscapeSchool/tiled/images/pig_def.png');
     await heroImage.load();
 
     // 2. 切割精灵图

@@ -73,6 +73,7 @@ export const VictoryManager = {
         this.gameEngine!.start(); 
         
         // 调用菜单管理器，显示选关界面
+        MenuManager.showMainMenu();
         MenuManager.showLevelSelect();
     }
 };

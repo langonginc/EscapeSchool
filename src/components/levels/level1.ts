@@ -14,7 +14,7 @@ export class Level1Scene extends ex.Scene {
 
     // 1. 初始化 (只执行一次)：专心加载资源
     async onInitialize(engine: ex.Engine) {
-        this.mapResource = new TiledResource('/tiled/map1.tmx'); 
+        this.mapResource = new TiledResource('/EscapeSchool/tiled/map1.tmx'); 
         await this.mapResource.load();
         this.isMapLoaded = true;
     }

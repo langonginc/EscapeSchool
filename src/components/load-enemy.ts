@@ -5,13 +5,13 @@ import { Enemy } from "./enemy";
 export const enemyProfiles: Record<EnemyType, EnemyProfile> = {
     [EnemyType.Liu]: {
         name: '刘主任',
-        avatarUrl: '/images/guard_avatar.png',
-        spriteSheetUrl: '/tiled/images/enemy.png'
+        avatarUrl: '/EscapeSchool/images/guard_avatar.png',
+        spriteSheetUrl: '/EscapeSchool/tiled/images/enemy.png'
     },
     [EnemyType.Feng]: {
         name: '冯老师',
-        avatarUrl: '/images/feng_avatar.png',
-        spriteSheetUrl: '/tiled/images/enemy.png'
+        avatarUrl: '/EscapeSchool/images/feng_avatar.png',
+        spriteSheetUrl: '/EscapeSchool/tiled/images/enemy.png'
     }
 };
 

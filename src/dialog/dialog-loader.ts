@@ -3,7 +3,7 @@ import { Dialog, DialogJson } from '../constants/dialog';
 export const loadDialog = async (id: string): Promise<Dialog[]> => {
     try {
         // 请求路径直接写绝对路径，Vite 会自动去 public 文件夹下找
-        const response = await fetch(`/dialog/${id}.json`);
+        const response = await fetch(`/EscapeSchool/dialog/${id}.json`);
         
         // 检查网络请求是否成功 (比如文件不存在会报 404)
         if (!response.ok) {
