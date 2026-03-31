@@ -19,8 +19,6 @@ const game = new ex.Engine({
     },
 });
 
-setupGameScenes(game);
-
 DialogManager.init();
 AlertManager.init();
 MenuManager.init(game);
@@ -46,6 +44,8 @@ game.on('postupdate', () => {
 });
 
 game.start().then(async() => {
+    setupGameScenes(game);
+
     PauseManager.init(game);
     GameOverManager.init();
     VictoryManager.init(game);
