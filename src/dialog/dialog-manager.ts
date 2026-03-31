@@ -80,7 +80,7 @@ export const DialogManager = {
     },
 
     renderCurrentDialog() {
-        const current = this.dialogs[this.currentIndex];
+        const current = this.dialogs[this.currentIndex]!;
         this.textElement!.innerHTML = current.text;
         this.optionsContainer!.innerHTML = '';
 
@@ -105,7 +105,7 @@ export const DialogManager = {
     },
 
     handleInput(key: ex.Keys) {
-        const current = this.dialogs[this.currentIndex];
+        const current = this.dialogs[this.currentIndex]!;
         if (current.type !== 'option' || !current.options) return;
 
         if (key === ex.Keys.W || key === ex.Keys.Up) {
@@ -118,9 +118,9 @@ export const DialogManager = {
     },
 
     confirmOption() {
-        const current = this.dialogs[this.currentIndex];
+        const current = this.dialogs[this.currentIndex]!;
         if (current.type === 'option' && current.options) {
-            const selectedOpt = current.options[this.selectedOptionIndex];
+            const selectedOpt = current.options[this.selectedOptionIndex]!;
 
             this.dialogStack.push({
                 dialogs: this.dialogs,
@@ -140,7 +140,7 @@ export const DialogManager = {
 
     next() {
         // 如果是选项模式，F 键触发 confirmOption
-        if (this.dialogs[this.currentIndex].type === 'option') {
+        if (this.dialogs[this.currentIndex]!.type === 'option') {
             this.confirmOption();
             return;
         }
