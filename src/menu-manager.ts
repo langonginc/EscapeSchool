@@ -166,10 +166,22 @@ export const MenuManager = {
         console.log(`[MenuManager.enterGame] 尝试进入: ${levelName}`);
         this.uiContainer!.style.display = 'none'; 
         console.log("👉 [跳转前检查] MenuManager 手里的引擎还是刚才那个吗？");
-        console.log("👉 [跳转前检查] 现在的场景有：", Object.keys(this.gameEngine!.scenes));
+        console.log("👉 [跳转前检查] 现在的场景有：", this.gameEngine!.scenes);
+        
         if (this.gameEngine) {
             console.log(`[MenuManager.enterGame] 正在调用 goToScene('${levelName}')`);
-            this.gameEngine.goToScene(levelName);
+            
+            // 【调试】详细检查场景对象
+            const targetScene = this.gameEngine.scenes[levelName];
+            console.log(`[MenuManager.enterGame] 目标场景对象:`, targetScene);
+            console.log(`[MenuManager.enterGame] 场景是否存在:`, !!targetScene);
+            
+            // 确保场景存在后再转场
+            if (targetScene) {
+                this.gameEngine.goToScene(levelName);
+            } else {
+                console.error(`[MenuManager.enterGame] ❌ 场景 '${levelName}' 不存在！`);
+            }
         }
     }
 };
