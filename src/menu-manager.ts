@@ -178,7 +178,7 @@ export const MenuManager = {
             
             // 确保场景存在后再转场
             if (targetScene) {
-                this.gameEngine.goToScene(levelName);
+                this.gameEngine.director.goToScene(levelName);
             } else {
                 console.error(`[MenuManager.enterGame] ❌ 场景 '${levelName}' 不存在！`);
             }

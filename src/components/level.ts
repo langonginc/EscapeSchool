@@ -11,10 +11,10 @@ export const LEVEL_COUNTS = 1;
 
 export const setupGameScenes = (game: ex.Engine) => {
     console.log('[setupGameScenes] 开始注册场景...');
-    game.add('menuScene', new ex.Scene());
+    game.director.add('menuScene', new ex.Scene());
     console.log('[setupGameScenes] ✓ menuScene 已注册');
 
-    game.add('level1', new Level1Scene());
+    game.director.add('level1', new Level1Scene());
     console.log('[setupGameScenes] ✓ level1 已注册');
     console.log('[setupGameScenes] 所有场景注册完成！');
 
