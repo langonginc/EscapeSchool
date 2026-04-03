@@ -2,11 +2,15 @@
 import { Scene } from '../engine/scene';
 import { TileMap } from '../engine/tiled-map';
 import { Player } from '../entities/player';
+import { Enemy } from '../entities/enemy';
+import { AlertManager } from '../../alert-manager';
+import { VictoryManager } from '../../victory-manager';
 import { DialogManager } from '../../dialog/dialog-manager';
 
 export abstract class BaseLevel extends Scene {
     public map!: TileMap;
     public player!: Player;
+    protected enemies: Enemy[] = [];
     protected isReady: boolean = false;
 
     // 🌟 1. 强制子类必须提供自己的地图路径
@@ -14,6 +18,10 @@ export abstract class BaseLevel extends Scene {
 
     // 🌟 2. 父类接管统一的初始化流程
     async init() {
+        // 重置状态，防止重新进入关卡时残留旧数据
+        this.enemies = [];
+        this.isReady = false;
+
         this.map = new TileMap();
         await this.map.loadTmx(this.mapUrl);
 
@@ -54,8 +62,24 @@ export abstract class BaseLevel extends Scene {
         // 玩家与地图的底层交互
         this.player.update(dt, this.game.input, this.map);
 
+        // 统一更新所有敌人
+        for (const enemy of this.enemies) {
+            enemy.update(dt, this.player, this.map, this.game);
+        }
+
+        // 胜利区域检测：玩家进入 Tiled 地图中名为 'Win' 的矩形区域
+        const win = this.map.getObjectByName('Win');
+        if (win && this.checkPlayerInRect(win)) {
+            this.game.isPaused = true;
+            VictoryManager.show();
+            return;
+        }
+
         // 执行子类当前关卡的特有逻辑 (比如检测是否走到终点)
         this.onLevelUpdate(dt);
+
+        // 刷新警报 UI（敌人在 update 中已通过 reportAlert 汇报状态）
+        AlertManager.render();
     }
 
     // 🌟 5. 父类接管统一的 Render 逻辑 (包含完美的摄像机居中+边界限制)
@@ -103,10 +127,25 @@ export abstract class BaseLevel extends Scene {
         this.map.render(ctx);
         this.player.render(ctx);
 
+        // 统一渲染所有敌人
+        for (const enemy of this.enemies) {
+            enemy.render(ctx);
+        }
+
         // 渲染子类特有的东西
         this.onLevelRender(ctx);
 
         ctx.restore();
+    }
+
+    // AABB 检测玩家是否进入某个矩形区域
+    private checkPlayerInRect(rect: { x: number; y: number; width: number; height: number }): boolean {
+        return (
+            this.player.x + this.player.w > rect.x &&
+            this.player.x < rect.x + rect.width &&
+            this.player.y + this.player.h > rect.y &&
+            this.player.y < rect.y + rect.height
+        );
     }
 
     // 统一的加载画面

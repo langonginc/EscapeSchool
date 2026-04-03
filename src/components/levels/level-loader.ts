@@ -1,6 +1,6 @@
-import { Game } from './engine/game';
-import { Level1Scene } from './levels/level1';
-import { MenuScene } from './levels/menu-scene';
+import { Game } from '../engine/game';
+import { Level1Scene } from './level1';
+import { MenuScene } from './menu-scene';
 
 // 只有 level1 被实现，所以关卡总数为 1
 // 如果以后添加更多关卡，需要：

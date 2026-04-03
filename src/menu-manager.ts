@@ -1,5 +1,5 @@
 // dialog/MenuManager.ts (或者你存放的路径)
-import { LEVEL_COUNTS } from './components/level';
+import { LEVEL_COUNTS } from './components/levels/level-loader';
 // 🌟 引入我们自己写的 Game 类
 import { Game } from './components/engine/game';
 
