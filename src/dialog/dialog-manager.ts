@@ -1,4 +1,4 @@
-import * as ex from 'excalibur';
+import { Input } from '../components/engine/input';
 import { Dialog } from '../constants/dialog';
 
 interface DialogState {
@@ -12,63 +12,43 @@ export const DialogManager = {
     currentIndex: 0,
     selectedOptionIndex: 0,
     dialogStack: [] as DialogState[],
+    
     uiContainer: null as HTMLElement | null,
     textElement: null as HTMLElement | null,
-    optionsContainer: null as HTMLElement | null, // 【新增】专门存放选项按钮的容器
-    hintElement: null as HTMLElement | null,      // 【新增】保存“按F继续”的引用，方便隐藏
+    optionsContainer: null as HTMLElement | null,
+    hintElement: null as HTMLElement | null,
+
+    onCloseCallback: null as (() => void) | null,
 
     init() {
         if (this.uiContainer) return;
 
-        // 1. 主容器 (UI 底板)
+        // 1. 主容器
         this.uiContainer = document.createElement('div');
-        this.uiContainer.style.position = 'absolute';
-        this.uiContainer.style.bottom = '20px';
-        this.uiContainer.style.left = '50%';
-        this.uiContainer.style.transform = 'translateX(-50%)';
-        this.uiContainer.style.width = '80%';
-        this.uiContainer.style.maxWidth = '800px';
-        this.uiContainer.style.backgroundColor = 'rgba(0, 0, 0, 0.85)';
-        this.uiContainer.style.border = '4px solid #fff';
-        this.uiContainer.style.borderRadius = '8px';
-        this.uiContainer.style.padding = '20px';
-        this.uiContainer.style.color = '#fff';
-        this.uiContainer.style.fontFamily = 'sans-serif';
-        this.uiContainer.style.fontSize = '24px';
-        this.uiContainer.style.lineHeight = '1.5';
-        this.uiContainer.style.boxSizing = 'border-box';
-        this.uiContainer.style.display = 'none'; 
-        this.uiContainer.style.pointerEvents = 'auto'; 
-        
-        // 阻止点击对话框时触发游戏底层的点击事件
+        this.uiContainer.className = 'dialog-container';
+        this.uiContainer.style.display = 'none'; // 初始隐藏
         this.uiContainer.addEventListener('pointerdown', (e) => e.stopPropagation());
 
         // 2. 文字容器
         this.textElement = document.createElement('div');
+        this.textElement.className = 'dialog-text';
         this.uiContainer.appendChild(this.textElement);
 
-        // 3. 选项容器 【新增】
+        // 3. 选项容器
         this.optionsContainer = document.createElement('div');
-        this.optionsContainer.style.marginTop = '20px';
-        this.optionsContainer.style.display = 'flex';
-        this.optionsContainer.style.flexDirection = 'column';
-        this.optionsContainer.style.gap = '10px';
+        this.optionsContainer.className = 'dialog-options';
         this.uiContainer.appendChild(this.optionsContainer);
 
         // 4. 按键提示
         this.hintElement = document.createElement('div');
+        this.hintElement.className = 'dialog-hint';
         this.hintElement.innerText = '按 [F] 继续 ▼';
-        this.hintElement.style.fontSize = '14px';
-        this.hintElement.style.color = '#ccc';
-        this.hintElement.style.textAlign = 'right';
-        this.hintElement.style.marginTop = '10px';
-        this.hintElement.style.animation = 'blink 1s infinite';
         this.uiContainer.appendChild(this.hintElement);
 
         document.body.appendChild(this.uiContainer);
     },
 
-    start(dialogData: Dialog[]) {
+    start(dialogData: Dialog[], onStart?: () => void, onClose?: () => void) {
         if (!dialogData || dialogData.length === 0) return;
         this.isActive = true;
         this.dialogs = dialogData;
@@ -76,6 +56,13 @@ export const DialogManager = {
         this.selectedOptionIndex = 0;
         this.uiContainer!.style.display = 'block';
         this.dialogStack = [];
+
+        // 🌟 1. 对话开始，立刻执行暂停逻辑
+        if (onStart) onStart();
+        
+        // 🌟 2. 把结束回调存起来，等 close 时调用
+        this.onCloseCallback = onClose || null;
+
         this.renderCurrentDialog();
     },
 
@@ -88,31 +75,66 @@ export const DialogManager = {
             this.hintElement!.style.display = 'block';
         } 
         else if (current.type === 'option') {
-            this.hintElement!.style.display = 'none';
+            this.hintElement!.style.display = 'none'; // 选项模式不显示"按F继续"
             if (current.options) {
                 current.options.forEach((opt, index) => {
-                    const btn = document.createElement('div'); // 改用 div 避免 button 默认焦点干扰
+                    const btn = document.createElement('div');
                     btn.className = 'dialog-option-btn';
-                    // 【核心】如果是当前选中的，加上 active 类
+                    
                     if (index === this.selectedOptionIndex) {
                         btn.classList.add('active');
+                        btn.innerText = `▶ ${opt.text}`; // 选中的选项加上箭头
+                    } else {
+                        btn.innerText = `  ${opt.text}`;
                     }
-                    btn.innerText = (index === this.selectedOptionIndex ? '> ' : '  ') + opt.text;
                     this.optionsContainer!.appendChild(btn);
                 });
             }
         }
     },
 
-    handleInput(key: ex.Keys) {
-        const current = this.dialogs[this.currentIndex]!;
-        if (current.type !== 'option' || !current.options) return;
+    /**
+     * 🌟 高内聚的 Update 方法，接管所有对话按键逻辑
+     */
+    update(input: Input) {
+        if (!this.isActive) return;
 
-        if (key === ex.Keys.W || key === ex.Keys.Up) {
-            this.selectedOptionIndex = (this.selectedOptionIndex - 1 + current.options.length) % current.options.length;
-            this.renderCurrentDialog();
-        } else if (key === ex.Keys.S || key === ex.Keys.Down) {
-            this.selectedOptionIndex = (this.selectedOptionIndex + 1) % current.options.length;
+        const current = this.dialogs[this.currentIndex];
+        if (!current) return;
+
+        // 1. 如果当前是选项模式，处理上下选择
+        if (current.type === 'option' && current.options) {
+            // 注意：因为 Input 类的 wasKeyPressed 检测的是单次按下，所以非常适合菜单选择
+            if (input.wasKeyPressed('w') || input.wasKeyPressed('arrowup')) {
+                this.selectedOptionIndex = (this.selectedOptionIndex - 1 + current.options.length) % current.options.length;
+                this.renderCurrentDialog();
+            } else if (input.wasKeyPressed('s') || input.wasKeyPressed('arrowdown')) {
+                this.selectedOptionIndex = (this.selectedOptionIndex + 1) % current.options.length;
+                this.renderCurrentDialog();
+            }
+        }
+
+        // 2. 处理确认/下一步 (统使用 F 键)
+        if (input.wasKeyPressed('f')) {
+            this.next();
+        }
+    },
+
+    next() {
+        const current = this.dialogs[this.currentIndex];
+        
+        // 如果是选项模式，F 键触发的是确认逻辑
+        if (current!.type === 'option') {
+            this.confirmOption();
+            return;
+        }
+
+        // 如果是普通文本，前往下一句
+        this.currentIndex++;
+        if (this.currentIndex >= this.dialogs.length) {
+            this.resumeFromStack();
+        } else {
+            this.selectedOptionIndex = 0; 
             this.renderCurrentDialog();
         }
     },
@@ -132,49 +154,25 @@ export const DialogManager = {
             } else {
                 this.dialogs = selectedOpt.next;
                 this.currentIndex = 0;
-                this.selectedOptionIndex = 0; // 进入新分支重置预选
+                this.selectedOptionIndex = 0; 
                 this.renderCurrentDialog();
             }
-        }
-    },
-
-    next() {
-        // 如果是选项模式，F 键触发 confirmOption
-        if (this.dialogs[this.currentIndex]!.type === 'option') {
-            this.confirmOption();
-            return;
-        }
-
-        this.currentIndex++;
-        if (this.currentIndex >= this.dialogs.length) {
-            // 【核心修改】：播完了不要直接 close()，先去看看栈里有没有上一级要恢复
-            this.resumeFromStack();
-        } else {
-            this.selectedOptionIndex = 0; 
-            this.renderCurrentDialog();
         }
     },
 
     resumeFromStack() {
-        // 如果栈里有东西，说明我们是在一个分支里
         if (this.dialogStack.length > 0) {
-            // 弹出最后压入的状态
             const state = this.dialogStack.pop()!;
             this.dialogs = state.dialogs;
             this.currentIndex = state.returnIndex;
 
-            // 这里有一个边界情况：万一上一级恢复回来的 returnIndex 也超出数组长度了怎么办？
-            // (比如这个 option 就是上一级数组的最后一句话)
             if (this.currentIndex >= this.dialogs.length) {
-                // 递归调用自己，继续往外层弹，直到找到还有话没说完的层级，或者栈被弹空
                 this.resumeFromStack(); 
             } else {
-                // 成功回到了上一级，并且还有话没说，继续渲染！
                 this.selectedOptionIndex = 0;
                 this.renderCurrentDialog();
             }
         } else {
-            // 栈彻底空了，说明最外层的主干剧情也跑完了，这才是真正的结束
             this.close();
         }
     },
@@ -182,5 +180,11 @@ export const DialogManager = {
     close() {
         this.isActive = false;
         this.uiContainer!.style.display = 'none';
+
+        // 🌟 3. 对话彻底结束，执行恢复逻辑
+        if (this.onCloseCallback) {
+            this.onCloseCallback();
+            this.onCloseCallback = null; // 执行完清理掉
+        }
     }
 };

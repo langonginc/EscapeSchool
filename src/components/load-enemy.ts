@@ -1,4 +1,3 @@
-import * as ex from "excalibur";
 import { EnemyType, EnemyProfile } from "../constants/enemy";
 import { Enemy } from "./enemy";
 

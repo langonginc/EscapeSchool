@@ -1,6 +1,6 @@
 import { Dialog, DialogJson } from '../constants/dialog';
 
-export const loadDialog = async (id: string): Promise<Dialog[]> => {
+const loadDialog = async (id: string): Promise<Dialog[]> => {
     try {
         // 请求路径直接写绝对路径，Vite 会自动去 public 文件夹下找
         const response = await fetch(`/EscapeSchool/dialog/${id}.json`);
@@ -17,5 +17,17 @@ export const loadDialog = async (id: string): Promise<Dialog[]> => {
     } catch (error) {
         console.error("加载对话失败:", error);
         return []; // 发生错误时返回空数组，防止游戏崩溃
+    }
+}
+
+export enum DialogIds {
+    L1 = '1-1',
+}
+
+export const dialogs: Partial<Record<DialogIds, Dialog[]>> = {};
+
+export const setupDialogs = async () => {
+    for (const id of Object.values(DialogIds)) {
+        dialogs[id] = await loadDialog(id);
     }
 }

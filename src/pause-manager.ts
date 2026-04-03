@@ -1,64 +1,75 @@
-import * as ex from 'excalibur';
+import { Game } from './components/engine/game';
+import { DialogManager } from './dialog/dialog-manager';
 import { MenuManager } from './menu-manager';
 
 export const PauseManager = {
     uiContainer: null as HTMLElement | null,
-    gameEngine: null as ex.Engine | null,
-    isPaused: false,
+    game: null as Game | null,
 
-    init(engine: ex.Engine) {
+    init(game: Game) {
         if (this.uiContainer) return;
-        this.gameEngine = engine;
+        this.game = game;
 
-        // 1. 创建全屏毛玻璃遮罩
+        // ================= 根容器 =================
         this.uiContainer = document.createElement('div');
-        this.uiContainer.style.position = 'absolute';
-        this.uiContainer.style.top = '0';
-        this.uiContainer.style.left = '0';
-        this.uiContainer.style.width = '100%';
-        this.uiContainer.style.height = '100%';
-        this.uiContainer.style.backgroundColor = 'rgba(0, 0, 0, 0.4)'; // 半透明黑底
-        this.uiContainer.style.backdropFilter = 'blur(8px)'; // 【核心特效】毛玻璃模糊
-        this.uiContainer.style.zIndex = '99999'; // 必须比 AlertManager 还要高
-        this.uiContainer.style.display = 'none'; // 默认隐藏
-        this.uiContainer.style.flexDirection = 'column';
-        this.uiContainer.style.justifyContent = 'center';
-        this.uiContainer.style.alignItems = 'center';
-        this.uiContainer.style.fontFamily = 'sans-serif';
+        this.uiContainer.className = 'pause-container';
 
-        // 3. 标题
+        // ================= 标题 =================
         const title = document.createElement('div');
         title.className = 'pause-title';
-        title.innerText = '已暂停';
+        title.innerText = '游戏暂停';
         this.uiContainer.appendChild(title);
 
-        // 4. 按钮组
-        this.createButton('继续游戏', () => this.resume());
-        this.createButton('重新开始', () => this.restartLevel());
-        this.createButton('返回主菜单', () => this.quitToMenu());
+        // ================= 按钮组 =================
+        const btnGroup = document.createElement('div');
+        btnGroup.className = 'pause-btn-group';
 
+        // 1. 继续游戏
+        const resumeBtn = document.createElement('button');
+        resumeBtn.className = 'pause-btn';
+        resumeBtn.innerText = '继续游戏';
+        resumeBtn.onclick = () => this.resume();
+        btnGroup.appendChild(resumeBtn);
+
+        // 2. 重新开始
+        const restartBtn = document.createElement('button');
+        restartBtn.className = 'pause-btn warning';
+        restartBtn.innerText = '重新开始';
+        restartBtn.onclick = () => this.restart();
+        btnGroup.appendChild(restartBtn);
+
+        // 3. 回到关卡选择
+        const levelBtn = document.createElement('button');
+        levelBtn.className = 'pause-btn';
+        levelBtn.innerText = '关卡选择';
+        levelBtn.onclick = () => this.goToLevelSelect();
+        btnGroup.appendChild(levelBtn);
+
+        // 4. 回到主界面
+        const mainBtn = document.createElement('button');
+        mainBtn.className = 'pause-btn';
+        mainBtn.innerText = '回到主界面';
+        mainBtn.onclick = () => this.goToMainMenu();
+        btnGroup.appendChild(mainBtn);
+
+        this.uiContainer.appendChild(btnGroup);
         document.body.appendChild(this.uiContainer);
-        
-        // 5. 【极其关键】绑定浏览器原生键盘事件，突破引擎冻结限制
+
+        // ================= 监听 ESC 键 =================
         window.addEventListener('keydown', (e) => {
-            // 如果按下了 Esc 键，并且当前不在主菜单界面 (防止在主菜单按 Esc 报错)
-            if (e.key === 'Escape' && MenuManager.uiContainer?.style.display === 'none') {
-                this.toggle();
+            // 如果按下的是 ESC，并且当前正在玩关卡（不在主菜单）
+            if (e.key === 'Escape' || e.key === 'Esc') {
+                this.togglePause();
             }
         });
     },
 
-    // 辅助创建按钮的函数
-    createButton(text: string, onClick: () => void) {
-        const btn = document.createElement('button');
-        btn.className = 'pause-btn';
-        btn.innerText = text;
-        btn.onclick = onClick;
-        this.uiContainer!.appendChild(btn);
-    },
+    togglePause() {
+        if (!this.game) return;
+        // 如果当前是菜单场景，不允许暂停
+        if (this.game.currentSceneName === 'menuScene') return;
 
-    toggle() {
-        if (this.isPaused) {
+        if (this.game.isPaused) {
             this.resume();
         } else {
             this.pause();
@@ -66,28 +77,36 @@ export const PauseManager = {
     },
 
     pause() {
-        this.isPaused = true;
-        this.uiContainer!.style.display = 'flex';
-        // 冻结 Excalibur 引擎！物理、渲染、动画全部时间停止！
-        this.gameEngine!.stop(); 
+        if (!this.game) return;
+        this.game.isPaused = true;
+        this.uiContainer!.style.display = 'flex'; // 显示暂停菜单
     },
 
     resume() {
-        this.isPaused = false;
-        this.uiContainer!.style.display = 'none';
-        // 唤醒引擎，游戏继续
-        this.gameEngine!.start(); 
+        if (!this.game) return;
+        this.game.isPaused = false;
+        this.uiContainer!.style.display = 'none'; // 隐藏暂停菜单
     },
 
-    restartLevel() {
-        this.resume(); // 先解除暂停
-        // 最暴力的重开方式：直接刷新网页。
-        // 如果你后期做了完善的场景清理逻辑，可以替换为重新加载当前 Scene
-        window.location.reload(); 
+    restart() {
+        this.resume(); // 先解除暂停状态
+        DialogManager.close();
+        if (this.game && this.game.currentSceneName) {
+            // 重新加载当前的场景名即可实现重开！
+            this.game.goToScene(this.game.currentSceneName);
+        }
     },
 
-    quitToMenu() {
-        this.resume(); // 【避坑】：必须先唤醒引擎，否则切回菜单后引擎依然是死机状态
+    goToLevelSelect() {
+        this.resume();
+        DialogManager.close();
+        MenuManager.showMainMenu();
+        MenuManager.showLevelSelect();
+    },
+
+    goToMainMenu() {
+        this.resume();
+        DialogManager.close();
         MenuManager.showMainMenu();
     }
 };
